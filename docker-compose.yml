@@ -4,6 +4,8 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: ai-document-scanner
+    env_file:
+      - .env
     environment:
       - NODE_ENV=production
       - PORT=3000
