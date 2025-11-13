@@ -2,7 +2,15 @@
 
 import type React from "react"
 
-import { useRef, useState } from "react"
+import { useRef, useState, useEffect } from "react"
+import { Button } from "@/components/ui/button"
+import {
+  Dialog,
+  DialogContent,
+  DialogClose,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import { FileUp } from "lucide-react"
 
 interface FileUploadProps {
   onFileSelected: (file: File) => void
@@ -12,6 +20,20 @@ interface FileUploadProps {
 export default function FileUpload({ onFileSelected, selectedFile }: FileUploadProps) {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [isDragging, setIsDragging] = useState(false)
+  const [preview, setPreview] = useState<string | null>(null)
+  const [showFullscreen, setShowFullscreen] = useState(false)
+
+  useEffect(() => {
+    if (selectedFile) {
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        setPreview(reader.result as string)
+      }
+      reader.readAsDataURL(selectedFile)
+    } else {
+      setPreview(null)
+    }
+  }, [selectedFile])
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault()
@@ -49,10 +71,10 @@ export default function FileUpload({ onFileSelected, selectedFile }: FileUploadP
       onClick={!selectedFile ? handleClick : undefined}
       className={`border-2 border-dashed rounded-xl p-12 text-center transition-all duration-200 cursor-pointer ${
         isDragging
-          ? "border-orange-500 bg-orange-50 shadow-md"
+          ? "border-orange-500 bg-orange-50 dark:bg-orange-950 shadow-md"
           : selectedFile
-            ? "border-gray-300 bg-white"
-            : "border-gray-300 bg-gray-50 hover:border-gray-400"
+            ? "border-border bg-card"
+            : "border-border bg-secondary hover:border-foreground dark:hover:border-foreground"
       }`}
     >
       <input
@@ -66,33 +88,62 @@ export default function FileUpload({ onFileSelected, selectedFile }: FileUploadP
       {!selectedFile ? (
         <>
           <div className="mb-4 flex justify-center">
-            <div className="text-5xl text-gray-400">📄</div>
+            <FileUp className="text-muted-foreground w-16 h-16" />
           </div>
-          <h3 className="text-xl font-semibold text-gray-900 mb-1">Drag & Drop File Here</h3>
-          <p className="text-gray-600 mb-4">Or click to browse your files</p>
-          <button
-            type="button"
-            onClick={handleClick}
-            className="inline-block px-6 py-2 bg-gray-900 text-white font-semibold rounded-lg hover:bg-gray-800 transition-colors"
+          <h3 className="text-xl font-semibold text-foreground mb-1">Drag & Drop File Here</h3>
+          <p className="text-muted-foreground mb-4">Or click to browse your files</p>
+          <Button
+            variant={'outline'}
           >
             Browse Files
-          </button>
+          </Button>
         </>
       ) : (
-        <div className="flex flex-col items-center gap-3">
-          <div className="text-5xl">✓</div>
+        <div className="flex flex-col items-center gap-4">
+          {preview && (
+            <div className="mb-4 max-w-sm">
+              <img
+                src={preview}
+                alt="Preview"
+                onClick={() => setShowFullscreen(true)}
+                className="w-full h-auto rounded-lg shadow-md object-contain max-h-64 cursor-pointer hover:opacity-80 transition-opacity"
+              />
+            </div>
+          )}
           <div>
-            <p className="font-semibold text-gray-900">{selectedFile.name}</p>
-            <p className="text-sm text-gray-600">({(selectedFile.size / 1024).toFixed(2)} KB)</p>
+            <p className="font-semibold text-foreground">{selectedFile.name}</p>
+            <p className="text-sm text-muted-foreground">({(selectedFile.size / 1024).toFixed(2)} KB)</p>
           </div>
-          <button
-            type="button"
+          <Button
             onClick={handleClick}
-            className="mt-2 px-6 py-2 bg-gray-900 text-white font-semibold rounded-lg hover:bg-gray-800 transition-colors text-sm"
+            variant="outline"
+            size="sm"
+            className="mt-2"
           >
             Change File
-          </button>
+          </Button>
         </div>
+      )}
+
+      {/* Fullscreen Modal */}
+      {preview && (
+        <Dialog open={showFullscreen} onOpenChange={setShowFullscreen}>
+          <DialogContent className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 max-w-4xl max-h-screen bg-black dark:bg-background border-0 p-0 flex items-center justify-center rounded-none" showCloseButton={false}>
+            <DialogTitle className="sr-only">Image Preview</DialogTitle>
+            <img
+              src={preview}
+              alt="Fullscreen Preview"
+              className="w-full h-full object-contain"
+            />
+            <button
+              onClick={() => setShowFullscreen(false)}
+              className="absolute top-4 right-4 bg-white dark:bg-card text-black dark:text-foreground rounded-full w-10 h-10 flex items-center justify-center hover:bg-gray-200 dark:hover:bg-secondary transition-colors"
+              aria-label="Close"
+            >
+              ✕
+            </button>
+          </DialogContent>
+        </Dialog>
       )}
     </div>
   )

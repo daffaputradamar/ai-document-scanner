@@ -1,6 +1,11 @@
 "use client"
 
 import { useState } from "react"
+import { Button } from "@/components/ui/button"
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
+import { ScrollArea } from "@/components/ui/scroll-area"
+import { Copy, Download, RefreshCcw } from "lucide-react"
+import { Card, CardContent } from "./ui/card"
 
 interface ExtractedDataProps {
   data: Record<string, string>
@@ -50,54 +55,64 @@ export default function ExtractedData({ data, onNewScan }: ExtractedDataProps) {
 
   return (
     <section>
-      <h2 className="text-2xl font-bold mb-6">Extracted Data</h2>
+      <h2 className="text-2xl font-bold mb-6 text-foreground">Extracted Data</h2>
+      
+      <Card className="pt-2">
+        <CardContent className="px-0">
+          {/* Format Tabs */}
+          <Tabs value={format} onValueChange={(value) => setFormat(value as DataFormat)} className="w-full">
+            <TabsList className="grid w-full grid-cols-3 h-12 bg-card px-6">
+              <TabsTrigger className="h-10 data-[state=active]:bg-background" value="json">JSON</TabsTrigger>
+              <TabsTrigger className="h-10 data-[state=active]:bg-background" value="text">TEXT</TabsTrigger>
+              <TabsTrigger className="h-10 data-[state=active]:bg-background" value="pdf">PDF</TabsTrigger>
+            </TabsList>
 
-      {/* Format Tabs */}
-      <div className="flex gap-2 mb-6 border-b border-gray-200 pb-4">
-        {(["json", "text", "pdf"] as const).map((fmt) => (
-          <button
-            key={fmt}
-            onClick={() => setFormat(fmt)}
-            className={`px-6 py-2 font-semibold transition-all duration-200 text-sm ${
-              format === fmt ? "border-b-2 border-orange-500 text-gray-900" : "text-gray-600 hover:text-gray-900"
-            }`}
-          >
-            {fmt.toUpperCase()}
-          </button>
-        ))}
-      </div>
+            <hr className="mb-4 border-border" />
 
-      <div className="bg-gray-50 rounded-lg p-6 mb-6 font-mono text-sm max-h-96 overflow-y-auto border border-gray-200 shadow-sm">
-        <pre className="text-gray-700 whitespace-pre-wrap break-words">{getFormattedData()}</pre>
-      </div>
+            <TabsContent value={format} className="px-6">
+              <ScrollArea className="bg-secondary dark:bg-secondary rounded-lg p-6 mb-6 border border-border shadow-sm h-96 px-6">
+                <pre className="text-foreground font-mono text-sm whitespace-pre-wrap break-words">{getFormattedData()}</pre>
+              </ScrollArea>
+            </TabsContent>
+          </Tabs>
 
-      {/* Action Buttons */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-        {format === "json" && (
-          <button
-            onClick={handleDownload}
-            className="bg-orange-500 hover:bg-orange-600 text-white font-semibold py-3 rounded-lg transition-colors flex items-center justify-center gap-2 shadow-sm"
-          >
-            <span>⬇️</span>
-            Download JSON
-          </button>
-        )}
-        <button
-          onClick={handleCopyToClipboard}
-          className={`bg-gray-200 hover:bg-gray-300 text-gray-900 font-semibold py-3 rounded-lg transition-colors flex items-center justify-center gap-2 ${format === "json" ? "" : "md:col-span-2"}`}
-        >
-          <span>📋</span>
-          {copyStatus === "copied" ? "Copied!" : "Copy to Clipboard"}
-        </button>
-      </div>
+          {/* Action Buttons */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 px-6">
+            {format === "json" && (
+              <Button
+                onClick={handleDownload}
+                className="bg-orange-500 hover:bg-orange-600"
+                size="lg"
+              >
+                <Download />
+                Download JSON
+              </Button>
+            )}
+            <Button
+              onClick={handleCopyToClipboard}
+              variant="secondary"
+              size="lg"
+              className={format === "json" ? "" : "md:col-span-2"}
+            >
+              <Copy />
+              {copyStatus === "copied" ? "Copied!" : "Copy to Clipboard"}
+            </Button>
+          </div>
 
-      <button
-        onClick={onNewScan}
-        className="w-full border-2 border-gray-300 hover:border-gray-400 text-gray-900 font-semibold py-3 rounded-lg transition-colors flex items-center justify-center gap-2 hover:bg-gray-50"
-      >
-        <span>🔄</span>
-        Start New Scan
-      </button>
+          <div className="px-6">
+            <Button
+              onClick={onNewScan}
+              variant="outline"
+              size="lg"
+              className="w-full"
+            >
+              <RefreshCcw/>
+              Start New Scan
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
     </section>
   )
 }
